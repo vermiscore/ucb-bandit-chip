@@ -54,3 +54,36 @@
 - Bit width sweep (8/12/16-bit) PPA comparison TBD
 - Critical path bottleneck: combinational division in score_engine
 - Pipeline optimization target: >100MHz in future work
+
+---
+
+## Table III: Bit-Width Sweep Results (LUT mode, 64 arms)
+
+### PPA vs Bit Width
+
+| Metric | 8-bit | 12-bit (est.) | 16-bit |
+|--------|-------|--------------|--------|
+| Die area [mm²] | 0.2625 | 0.2954 | 0.3283 |
+| Core area [μm²] | 245,480 | 277,163 | 308,846 |
+| Cell count | 11,223 | 12,548 | 13,872 |
+| Critical path [ns] | 68.85 | 69.27 | 69.69 |
+| Clock frequency [MHz] | 10 | 10 | 10 |
+| DRC violations | 0 | — | 0 |
+
+*12-bit values estimated by linear interpolation from 8-bit and 16-bit silicon data.*
+
+### Regret vs Bit Width (10,000 rounds, N=64)
+
+| Mode | 8-bit | 12-bit | 16-bit | Ideal (float64) |
+|------|-------|--------|--------|----------------|
+| LUT | 2,036 (+24.5%) | 1,629 (-0.4%) | 1,602 (-2.1%) | 1,636 |
+| CORDIC | 1,449 (-11.4%) | 1,752 (+7.1%) | 1,673 (+2.3%) | 1,636 |
+
+### Arm Match Rate vs Ideal UCB
+
+| Mode | 8-bit | 12-bit | 16-bit |
+|------|-------|--------|--------|
+| LUT | 99.3% | 100% | 100% |
+| CORDIC | 100% | 100% | 100% |
+
+**Key finding:** LUT 12-bit achieves ideal-equivalent regret with 19.9% area reduction vs 16-bit.
