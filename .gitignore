@@ -4,3 +4,4 @@ __pycache__/
 *.pyc
 *.vcd
 /tmp/
+ucb_top.vcd
