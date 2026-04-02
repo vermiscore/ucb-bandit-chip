@@ -129,6 +129,6 @@ We presented a 64-arm UCB bandit chip in 130nm CMOS implementing approximate ln 
 
 ---
 
-![Architecture](ucb_chip_architecture_figure1.svg)  
+![Architecture](figure1_architecture.svg)  
 *[Figure 2: Regret curves (LUT/CORDIC × bit width) - see results/regret_curves.png]*  
 ![GDS Layout](ucb_chip.png)
