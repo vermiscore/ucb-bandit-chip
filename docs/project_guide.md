@@ -9,7 +9,7 @@ This document describes the overall structure, workflows, and notes for the proj
 ```
 ~/Desktop/myfolder/research/bandit/
 ├── ucb-bandit-chip/                  # Main chip design repository (GitHub)
-├── caravel_user_project/             # Efabless shuttle submission framework
+├── caravel_user_project/             # Efabless shuttle submission framework (active)
 ├── caravel_user_project_v1_backup/   # Backup — do not modify
 └── OpenLane/                         # OpenLane v1.0.2 for standalone runs
 ```
@@ -44,7 +44,7 @@ ucb-bandit-chip/
 │   └── openlane_metrics.csv  OpenLane metrics (16-bit run)
 ├── docs/             # Documentation
 │   ├── paper_draft.md            Paper draft (ISSCC/VLSI target)
-│   ├── figure1_architecture.svg  Architecture block diagram
+│   ├── figure1_architecture.svg  Architecture block diagram (serif, paper style)
 │   ├── ucb_chip.png              KLayout screenshot (GDS)
 │   └── project_guide.md          This file
 └── syn/
@@ -74,7 +74,7 @@ iverilog -o /tmp/ucb_sim \
   $BASE/tb/tb_ucb_top.v && vvp /tmp/ucb_sim
 ```
 
-### OpenLane — standalone chip runs
+### OpenLane — standalone chip runs (v1.0.2)
 
 ```bash
 cd ~/Desktop/myfolder/research/bandit/OpenLane
@@ -87,9 +87,45 @@ make mount
 ### Caravel framework — tapeout
 
 ```bash
+# Full build (user_proj_example + user_project_wrapper, ~2 hours)
 cd ~/Desktop/myfolder/research/bandit/caravel_user_project
-make harden    # Hardens user_proj_example then user_project_wrapper
+make harden
+
+# user_project_wrapper only (skip user_proj_example, ~50 min)
+cd ~/Desktop/myfolder/research/bandit/caravel_user_project
+make -C openlane user_project_wrapper \
+  UPRJ_ROOT=$(pwd) \
+  OPEN_PDKS_COMMIT=78b7bc32ddb4b6f14f76883c2e2dc5b5de9d1cbc \
+  CARAVEL_ROOT=$(pwd)/caravel \
+  PDK_ROOT=/home/user/.volare/volare/sky130/versions/0fe599b2afb6708d281543108caf8310912f54af \
+  PDK=sky130A \
+  MCW_ROOT=$(pwd)/mgmt_core_wrapper \
+  OPENLANE_ROOT=$(pwd)/dependencies/openlane_src
 ```
+
+### Caravel — key files
+
+| File | Description |
+|------|-------------|
+| `verilog/rtl/user_project_wrapper.v` | Top-level wrapper (maps ucb_top to Caravel IOs) |
+| `openlane/user_project_wrapper/config.tcl` | OpenLane config for wrapper |
+| `lef/ucb_top.lef` | LEF macro from standalone run |
+| `gds/ucb_top.gds` | GDS macro from standalone run |
+| `spef/ucb_top.{min,nom,max}.spef` | SPEF for multi-corner STA |
+| `spi/lvs/ucb_top.spice` | SPICE netlist for LVS |
+
+### Caravel — signal mapping
+
+| Caravel signal | ucb_top signal |
+|---------------|----------------|
+| `la_data_in[0]` | `start` |
+| `la_data_in[1]` | `reward_valid` |
+| `la_data_in[7:2]` | `reward_arm[5:0]` |
+| `la_data_in[23:8]` | `reward_val[15:0]` |
+| `io_out[5:0]` | `selected_arm[5:0]` |
+| `io_out[6]` | `valid_out` |
+| `wb_clk_i` | `clk` |
+| `wb_rst_i` (inverted) | `rst_n` |
 
 ### Open GDS in KLayout
 
@@ -160,13 +196,16 @@ The Caravel framework uses its own OpenLane version (2023.07.19-1) located at `c
 ### 12-bit GDS
 GDS generation failed due to routing congestion. PPA values for 12-bit are linearly interpolated from 8-bit and 16-bit silicon data.
 
+### CORDIC synthesis
+CORDIC mode (MODE=1) caused ABC crash during synthesis (19k+ gates). Not implemented in silicon. Regret data from Python simulation only.
+
 ---
 
 ## Remaining Tasks
 
-- [ ] Complete Caravel user_project_wrapper GDS generation
+- [ ] Confirm Caravel user_project_wrapper LVS pass (run in progress)
 - [ ] Set up SSH key for GitHub (eliminate token exposure)
-- [ ] Survey related work (analog bandit chips)
+- [ ] Survey related work (analog bandit chips) for paper Related Work
 - [ ] Build prior work comparison table for paper
 - [ ] Create info.yaml for Efabless shuttle submission
 - [ ] Accurate power measurement via VCD-based OpenSTA
