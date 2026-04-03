@@ -209,3 +209,57 @@ CORDIC mode (MODE=1) caused ABC crash during synthesis (19k+ gates). Not impleme
 - [ ] Build prior work comparison table for paper
 - [ ] Create info.yaml for Efabless shuttle submission
 - [ ] Accurate power measurement via VCD-based OpenSTA
+
+## check faster first
+cd ~/Desktop/myfolder/research/bandit/caravel_user_project
+make -C openlane user_project_wrapper \
+  UPRJ_ROOT=$(pwd) \
+  OPEN_PDKS_COMMIT=78b7bc32ddb4b6f14f76883c2e2dc5b5de9d1cbc \
+  CARAVEL_ROOT=$(pwd)/caravel \
+  PDK_ROOT=/home/user/.volare/volare/sky130/versions/0fe599b2afb6708d281543108caf8310912f54af \
+  PDK=sky130A \
+  MCW_ROOT=$(pwd)/mgmt_core_wrapper \
+  OPENLANE_ROOT=$(pwd)/dependencies/openlane_src \
+  OPENLANE_EXTRA_ARGS="-to floorplan"
+  
+  
+## LVS Setup (Caravel)
+
+LVS requires a full transistor-level SPICE netlist for ucb_top. The black-box SPICE from OpenLane is not sufficient.
+
+### How to generate ucb_top SPICE with Magic
+
+1. Enter OpenLane container and run Magic extraction:
+
+\```bash
+cd ~/Desktop/myfolder/research/bandit/OpenLane
+make mount
+\```
+
+Inside the container:
+
+\```bash
+magic -noconsole -dnull \
+  -rcfile /home/user/.volare/volare/sky130/versions/0fe599b2afb6708d281543108caf8310912f54af/sky130A/libs.tech/magic/sky130A.magicrc << 'EOF'
+gds read /home/user/Desktop/myfolder/research/bandit/ucb-bandit-chip/gds/ucb_top.gds
+load ucb_top
+extract all
+ext2spice lvs
+ext2spice -o /home/user/Desktop/myfolder/research/bandit/caravel_user_project/spi/lvs/ucb_top_extracted.spice
+EOF
+\```
+
+2. Exit container, then replace power pin names:
+
+\```bash
+sed -i 's/\bVPWR\b/vccd1/g; s/\bVGND\b/vssd1/g' \
+   ~/Desktop/myfolder/research/bandit/caravel_user_project/spi/lvs/ucb_top_extracted.spice
+
+cp ~/Desktop/myfolder/research/bandit/caravel_user_project/spi/lvs/ucb_top_extracted.spice \
+   ~/Desktop/myfolder/research/bandit/caravel_user_project/spi/lvs/ucb_top.spice
+\```
+
+### Notes
+- ucb_top_extracted.spice is ~2.4MB with full transistor-level netlist
+- VPWR/VGND in GDS must be renamed to vccd1/vssd1 to match Caravel power domain
+- LEF file also needs VPWR/VGND → vccd1/vssd1: `sed -i 's/VPWR/vccd1/g; s/VGND/vssd1/g' lef/ucb_top.lef`
