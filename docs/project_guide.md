@@ -263,3 +263,15 @@ cp ~/Desktop/myfolder/research/bandit/caravel_user_project/spi/lvs/ucb_top_extra
 - ucb_top_extracted.spice is ~2.4MB with full transistor-level netlist
 - VPWR/VGND in GDS must be renamed to vccd1/vssd1 to match Caravel power domain
 - LEF file also needs VPWR/VGND → vccd1/vssd1: `sed -i 's/VPWR/vccd1/g; s/VGND/vssd1/g' lef/ucb_top.lef`
+
+##LVS Issues & Fixes
+Issue 1: ucb_top black-box in SPICE
+OpenLane generates ucb_top as a black-box. Need full transistor-level SPICE from Magic extraction.
+Fix: Run Magic extract all + ext2spice on ucb_top.gds, then replace VPWR/VGND → vccd1/vssd1.
+Issue 2: Duplicate cell when appending SPICE
+Appending ucb_top.spice to user_project_wrapper.spice creates ucb_top[[0]] due to existing black-box definition.
+Fix: Delete the black-box .subckt ucb_top ... .ends lines (around line 79) before appending.
+Issue 3: Power pins not connected to wrapper
+Xu_ucb u_ucb/vssd1 u_ucb/vccd1 ... — power pins are floating as local nets.
+Fix: Replace u_ucb/vssd1 → vssd1 and u_ucb/vccd1 → vccd1 in the Xu_ucb instance line.
+Result: Circuits match uniquely. ✅

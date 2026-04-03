@@ -1,0 +1,24 @@
+次回やることはこれです：
+
+**最優先**
+- LVSの修正をOpenLaneのフローに組み込む（今はmanual fixなので自動化が必要）
+- `make harden`でLVS含めて全部通るようにする
+
+**その次**
+- 論文の参考文献調査（アナログbanditチップの先行研究）
+- 先行研究との比較表作成
+- Efablessシャトル申請用info.yaml作成
+
+---
+
+**新しいchatに渡す情報**
+
+このファイルを見せれば全部わかります：
+
+```
+~/Desktop/myfolder/research/bandit/ucb-bandit-chip/docs/project_guide.md
+```
+
+加えてこれを伝えてください：
+
+> LVSはmanual fixで通過済み（lvs_test3.rptでCircuits match uniquely）。次のステップはこのfixをOpenLaneフローに自動化すること。具体的には(1) ucb_top black-box削除、(2) Xu_ucbの電源ピンをvssd1/vccd1に接続、の2つをpost-processingスクリプトで自動化する。
